@@ -8,12 +8,19 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Parameters;
+import pages.CapabilityFactory;
 import pages.HomePage;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
 public class BaseTest {
+
+    //Declare ThreadLocal Driver (ThreadLocalMap) for ThreadSafe Tests
+  //  protected static ThreadLocal<RemoteWebDriver> driver = new ThreadLocal<>();
+   // public CapabilityFactory capabilityFactory = new CapabilityFactory();
+
     public WebDriver driver;
     public HomePage homePage;
 
@@ -22,15 +29,21 @@ public class BaseTest {
     }
 
     @BeforeClass
+    @Parameters(value={"browser"})
+
+   /* public void setup (String browser) throws MalformedURLException {
+        //Set Browser to ThreadLocalMap
+        driver.set(new RemoteWebDriver(new URL("http://localhost:4444/wd/hub"), capabilityFactory.getCapabilities(browser)));
+    }*/
     public void classLevelSetup() throws MalformedURLException {
 
-        /*
+
         WebDriverManager.chromedriver().setup();
         driver = new ChromeDriver();
         driver.manage().window().maximize();
-         */
 
-        String slenoidURL = "http://192.168.88.211:8081/wd/hub";
+
+     /*   String slenoidURL = "http://192.168.88.211:8081/wd/hub";
         DesiredCapabilities caps = new DesiredCapabilities();
         caps.setBrowserName("chrome");
         caps.setVersion("87.0");
@@ -39,7 +52,7 @@ public class BaseTest {
         caps.setCapability("enableVideo", true);
         caps.setCapability("enableLog", true);
 
-        driver = new RemoteWebDriver(new URL(slenoidURL), caps);
+        driver = new RemoteWebDriver(new URL(slenoidURL), caps);*/
     }
 
     @BeforeMethod

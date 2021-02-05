@@ -15,6 +15,12 @@ public class BasePage {
         wait = new WebDriverWait(driver,20);
     }
 
+    public static void exceptCookies(WebDriver driver) {
+        if (driver.findElements(By.cssSelector("#onetrust-accept-btn-handler")).size()!=0)
+        { driver.findElement(By.cssSelector("#onetrust-accept-btn-handler")).click();}
+    }
+
+
     public void waitVisibility(By by){
         wait.until(ExpectedConditions.visibilityOfElementLocated(by));
     }

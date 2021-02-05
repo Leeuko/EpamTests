@@ -14,6 +14,7 @@ import org.testng.Assert;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.sql.Timestamp;
@@ -29,8 +30,8 @@ public class HomePage extends BasePage {
     private Logger logger = LogManager.getLogger(HomePage.class);
 
     String baseURL = "https://events.epam.com/";
-    By locationCanada =  By.xpath("//label[@data-value='Canada']");
 
+    //To show text where result can be different
     @Attachment(value = "{0}", type = "text/plain")
     public static String saveTextLog(String message) {
         return message;
@@ -38,31 +39,47 @@ public class HomePage extends BasePage {
 
     @Step("Open Epam page")
     public HomePage goToEpam() {
+
         driver.get(baseURL);
+        pageLoaded(driver, baseURL, 60);
         return this;
     }
 
     @Step("Go to Events page")
     public HomePage goToEventsPage(){
-        pageLoaded(driver, baseURL, 60);
-        //except cookies
-        if (driver.findElements(By.cssSelector("#onetrust-accept-btn-handler")).size()!=0)
-        { driver.findElement(By.cssSelector("#onetrust-accept-btn-handler")).click();}
+
+        BasePage.exceptCookies(driver);
+
         //sometimes buttons from the top menu are not shown
-        if (driver.findElements(By.cssSelector("li.nav-item:nth-child(2) > a:nth-child(1)")).size()!=0)
+        if (driver.findElements(Objects.eventsFromTopMenu).size()!=0)
         {Objects.events(driver).click();}
         //if buttons do not appear, click on the upcoming events from the bottom section
          else {
-            WebElement element = driver.findElement(By.xpath("//a[@href='/all-events']"));
+            WebElement element = driver.findElement(Objects.eventsFromBottomMenu);
             Actions actions = new Actions(driver);
             actions.moveToElement(element).click().perform();
         }
+
         waitVisibility(Objects.upcomingEventsCounter);
+        return this;
+    }
+
+    @Step("Go to Video page")
+    public HomePage goToVideoPage() throws InterruptedException {
+
+        BasePage.exceptCookies(driver);
+        Objects.videos(driver).click();
+        //here sleep is important,test runs too fast, waitVisibility doesn't work
+        sleep(500);
+        waitVisibility(Objects.filter);
+        //here sleep is important, have to wait for correct cards, another way test returns card before filtering
+        sleep(500);
         return this;
     }
 
     @Step("Verify number of events")
     public HomePage verifyEvents(By counter, By events, By numberEvents) {
+
         int counterNumber = Integer.parseInt(driver.findElement(counter).getText());
         WebElement  allEvents= driver.findElement(events);
         List<WebElement> numberOfEvents = allEvents.findElements(numberEvents);
@@ -72,6 +89,7 @@ public class HomePage extends BasePage {
 
     @Step("Verify information position")
     public HomePage verifyOrderOfInformation() {
+
         assertTrue(driver.findElement(By.xpath("//div[@class='evnt-card-wrapper']/div[1]/div/div[1][contains(@class, 'online-cell')]")).isDisplayed());
         assertTrue(driver.findElement(By.xpath("//div[@class='evnt-card-wrapper']/div[1]/div/div[2][contains(@class, 'language-cell')]")).isDisplayed());
         assertTrue(driver.findElement(By.xpath("//div[@class='evnt-card-wrapper']/div[1]/div/div[3][contains(@class, 'calendar-cell')]")).isDisplayed());
@@ -91,7 +109,7 @@ public class HomePage extends BasePage {
             String selectMonth = eventEndDate.split(" ")[1];
             String year = eventDate.substring(eventDate.lastIndexOf(" ") + 1);
             String eventStartDateWithoutYear = eventDate.substring(0, eventDate.indexOf(" - "));
-            String eventStartDate = null;
+            String eventStartDate;
             String[] splittedStartDate = eventStartDateWithoutYear.split(" ");
             if (splittedStartDate.length == 2)
             {eventStartDate = eventStartDateWithoutYear + " " + year;}
@@ -112,16 +130,10 @@ public class HomePage extends BasePage {
         return this;
     }
 
-    @Step("Verify date of event")
+    @Step("Return group of events by dates")
     public HomePage thisWeekEvents(){
         logger.info(Objects.duringThisWeek + " - are during current week" + " and " + Objects.duringNotThisWeek + " - are during not current week");
-        System.out.println(Objects.duringThisWeek + " - are during current week" + " and " + Objects.duringNotThisWeek + " - are during not current week");
-        return this;
-    }
-
-    @Step("Verify date of event")
-    public HomePage pastEvents(){
-        saveTextLog("This is sparta!!!");
+        saveTextLog(Objects.duringThisWeek + " - are during current week" + " and " + Objects.duringNotThisWeek + " - are during not current week");
         return this;
     }
 
@@ -129,9 +141,134 @@ public class HomePage extends BasePage {
     public HomePage pastEventsCanada() throws InterruptedException {
         Objects.pastEvents(driver).click();
         Objects.locations(driver).click();
-        waitVisibility(locationCanada);
-        driver.findElement(locationCanada).click();
+        waitVisibility(Objects.locationCanada);
+        driver.findElement(Objects.locationCanada).click();
+        //sleep is needed to wait for valid cards
         sleep(500);
         return this;
     }
+
+    @Step("Event details")
+    public  HomePage eventDetails(){
+        String Title = driver.findElement(Objects.CardTitle).getText();
+        Objects.card(driver).click();
+        waitVisibility(Objects.eventContent);
+        String eventContentTitle = driver.findElement(Objects.eventContent).getText();
+        assertTrue(Title.equals(eventContentTitle));
+
+        return  this;
+    }
+
+    @Step("Set filters for videos: Category - Testing, Location - Belarus, Language - English")
+    public  HomePage openVideosByCriteria() throws InterruptedException {
+
+        Objects.moreFilters(driver).click();
+        Objects.category(driver).click();
+
+        //move scroll down to see Testing checkbox
+        JavascriptExecutor je = (JavascriptExecutor) driver;
+        WebElement categoryTesting = Objects.categoryTesting(driver);
+        je.executeScript("arguments[0].scrollIntoView(true);",categoryTesting);
+        //page scroll move down too, so return it back to the top
+        JavascriptExecutor je2 = (JavascriptExecutor) driver;
+        WebElement login = Objects.category(driver);
+        je2.executeScript("arguments[0].scrollIntoView(true);",login);
+        // now checkbox can be selected
+        categoryTesting.click();
+
+        Objects.location(driver).click();
+        Objects.locationBelarus(driver).click();
+        Objects.language(driver).click();
+        Objects.languageEnglish(driver).click();
+        return  this;
+    }
+
+    @Step("Verify video results for set criteria")
+    public  HomePage verifyVideosShownByCriteria(By Sections, By Cards){
+
+        WebElement allSections = driver.findElement(Sections);
+        List<WebElement> allCards = allSections.findElements(Cards);
+
+        //collect all links to the cards details
+        for (WebElement card : allCards) {
+            String eventLink = card.getAttribute("href");
+            Objects.linkLocation.add(eventLink);
+        }
+
+        //Open each link and verify information
+        for (String cardLink : Objects.linkLocation) {
+            driver.get(cardLink);
+            waitVisibility(Objects.topic);
+
+        BasePage.exceptCookies(driver);
+
+        String cardTopic = driver.findElement(Objects.cardTitle).getText();
+        String Country = Objects.videoCountry(driver).getText();
+
+        //collect all labels with topics
+            WebElement Topics = driver.findElement(By.xpath("//div[@class='evnt-topics-wrapper']"));
+            List<WebElement> allTopics = Topics.findElements(By.xpath("//div[contains(@class,'evnt-talk-topic')]/label"));
+            //verify that Testing label exists among labels
+            for (WebElement topic : allTopics) {
+                String Topic = topic.getText();
+                if (Topic.contains("Testing") )
+                {Objects.validTopics.add(cardTopic);}
+                else
+                {Objects.invalidTopics.add(cardTopic); }
+            }
+
+        String Language = Objects.videoLanguage(driver).getText();
+
+            if (Country.contains("Belarus") && Language.contains("ENGLISH") && Objects.validTopics.size()!=0 )
+            { Objects.validInfo.add(cardTopic); }
+            else
+           { Objects.invalidInfo.add(cardTopic);}
+
+        }
+        if (Objects.invalidInfo.isEmpty())
+        {
+            logger.info("all cards contain valid information for set criteria");
+            saveTextLog("all cards contain valid information for set criteria");
+        }
+        else{
+            logger.info(Objects.invalidInfo + " - this topics should not be  shown for set criteria");
+            saveTextLog(Objects.invalidInfo + " - this topics should not be  shown for set criteria");
+        }
+        return  this;
+    }
+
+    @Step("Verify video results for set criteria")
+    public  HomePage videoSearch(By allsections, By allcards) throws InterruptedException {
+
+        Objects.videoSearch(driver).sendKeys("QA");
+        //need to wait for correct cards after search
+        sleep(800);
+
+        //collects all cards appeared after search
+        WebElement allSections = driver.findElement(allsections);
+        List<WebElement> allCards = allSections.findElements(allcards);
+
+        //verify QA word in title
+        for(WebElement card : allCards)
+        {
+            String VideoTitle = card.getText();
+            if (VideoTitle.contains("QA"))
+            {Objects.validTopics.add(VideoTitle);}
+            else
+            {
+                Objects.invalidTopics.add(VideoTitle);
+            }
+        }
+        if(Objects.invalidTopics.isEmpty())
+        {
+            logger.info("all cards contain valid information for set criteria");
+            saveTextLog("all cards contain valid information for set criteria");
+        }
+        else {
+            logger.info(Objects.invalidTopics + " - this topics should not be  shown for set criteria");
+            saveTextLog(Objects.invalidTopics + " - this topics should not be  shown for set criteria");
+        }
+        return this;
+    }
+
 }
