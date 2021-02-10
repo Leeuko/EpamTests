@@ -20,7 +20,6 @@ public class BasePage {
         { driver.findElement(By.cssSelector("#onetrust-accept-btn-handler")).click();}
     }
 
-
     public void waitVisibility(By by){
         wait.until(ExpectedConditions.visibilityOfElementLocated(by));
     }

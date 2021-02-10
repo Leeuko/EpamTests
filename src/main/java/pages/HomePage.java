@@ -14,7 +14,6 @@ import org.testng.Assert;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.sql.Timestamp;
@@ -93,8 +92,8 @@ public class HomePage extends BasePage {
         assertTrue(driver.findElement(By.xpath("//div[@class='evnt-card-wrapper']/div[1]/div/div[1][contains(@class, 'online-cell')]")).isDisplayed());
         assertTrue(driver.findElement(By.xpath("//div[@class='evnt-card-wrapper']/div[1]/div/div[2][contains(@class, 'language-cell')]")).isDisplayed());
         assertTrue(driver.findElement(By.xpath("//div[@class='evnt-card-wrapper']/div[1]/div/div[3][contains(@class, 'calendar-cell')]")).isDisplayed());
-        assertTrue(driver.findElement(By.xpath("//div[@class='evnt-card-wrapper']/div[2]/div/div[1][@class, 'evnt-event-name']")).isDisplayed());
-        assertTrue(driver.findElement(By.xpath("//div[@class='evnt-card-wrapper']/div[2]/div/div[2][@class, 'evnt-event-dates']")).isDisplayed());
+        assertTrue(driver.findElement(By.xpath("//div[@class='evnt-card-wrapper']/div[2]/div/div[1][@class='evnt-event-name']/h1/span")).isDisplayed());
+        assertTrue(driver.findElement(By.xpath("//div[@class='evnt-card-wrapper']/div[2]/div/div[2][@class='evnt-event-dates']")).isDisplayed());
         assertTrue(driver.findElement(By.xpath("//div[@class='evnt-card-wrapper']/div[3]/div/div[1][contains(@class, 'evnt-people-cell')]")).isDisplayed());
         return this;
     }
