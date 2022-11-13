@@ -23,7 +23,7 @@ public class BaseTest {
     @BeforeClass
     @Parameters(value={"browser"})
     public void classLevelSetup(String browser) throws MalformedURLException {
-        driver.set(new RemoteWebDriver(new URL("http://192.168.88.211:4444/wd/hub"), capabilityFactory.getCapabilities(browser)));
+        driver.set(new RemoteWebDriver(new URL("http://192.168.0.211:4444/wd/hub"), capabilityFactory.getCapabilities(browser)));
     }
 
     @BeforeMethod
